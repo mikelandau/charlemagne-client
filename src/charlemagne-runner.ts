@@ -6,10 +6,11 @@ class CharlemagneRunner implements GameRunner {
 
     constructor(game: Game) {
         this._game = game;
+        this._game.initialize();
     }
 
     async runStep() {
-        await this._game.readInput();
+        //await this._game.readInput();
         await this._game.update();
         await this._game.draw();
     }

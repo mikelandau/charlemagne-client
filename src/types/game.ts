@@ -1,5 +1,8 @@
 interface Game {
-    readInput: () => Promise<void>;
+    domElement: HTMLCanvasElement;
+    keys: Set<string>;
+
+    initialize: () => Promise<void>;
     update: () => Promise<void>;
     draw: () => Promise<void>;
 };
