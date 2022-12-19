@@ -1,42 +1,35 @@
-import Game from './types/game';
 import * as THREE from 'three';
-import Box from './types/box';
+
+import Game from './types/game';
 import KeyBindings from './types/key-bindings';
 import GameMode from './types/game-mode';
+import GameContext from './types/game-context';
+import getInputContext from './input/get-input-context';
+import slewModeUpdater from './updaters/slew-mode-updater';
+import Eye from './types/eye';
 
 class Charlemagne implements Game {
     public domElement: HTMLCanvasElement;
 
     public keys: Set<string> = new Set<string>();
 
-    public gameModeDebug = '';
+    public mouseX: number = 0.0;
+    public mouseY: number = 0.0;
+
+    public debug = '';
     
-    private _scene = new THREE.Scene();
-    private _camera: THREE.PerspectiveCamera;
-    private _renderer: THREE.WebGLRenderer;
+    private _context: GameContext;
 
     private _gameMode: GameMode = 'slew';
 
-    private _keyBindings: KeyBindings = {
-        moveForward: 'w',
-        moveBack: 's',
-        moveLeft: 'a',
-        moveRight: 'd',
-        moveUp: ' ',
-        moveDown: 'Control'
-    };
-
-    private _boxes: Box[];
-
     constructor() {
-        this._camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
         
-        this._renderer = new THREE.WebGLRenderer();
-        this._renderer.setSize(window.innerWidth, window.innerHeight);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
 
-        this.domElement = this._renderer.domElement;
-
-        this._boxes = [{
+        const boxes = [{
             x: 0,
             y: -1,
             z: 0,
@@ -45,18 +38,35 @@ class Charlemagne implements Game {
             depth: 100,
             color: 0x8888aa,
         }];
+
+        const slewModeEye: Eye = {
+            x: 0,
+            y: 0,
+            z: 0,
+            pitch: 0,
+            yaw: 0
+        };
+
+        this._context = {
+            boxes,
+            camera,
+            renderer,
+            scene,
+            slewModeEye
+        };
+        this.domElement = renderer.domElement;
     }
 
     async initialize(): Promise<void> {
 
-        this._camera.position.set(0, 0, 100);
-        this._camera.lookAt(0, 0, 0);
+        this._context.camera.position.set(0, 0, 100);
+        this._context.camera.lookAt(0, 0, 0);
 
-        this._boxes.forEach(box => {
+        this._context.boxes.forEach(box => {
             const geometry = new THREE.BoxGeometry(box.width, box.height, box.depth);
             const material = new THREE.MeshBasicMaterial({ color: box.color });
             const mesh = new THREE.Mesh(geometry, material);
-            this._scene.add(mesh);
+            this._context.scene.add(mesh);
         });
 
         const geometry = new THREE.BoxGeometry(1,1,1);
@@ -64,38 +74,33 @@ class Charlemagne implements Game {
         
         const cube = new THREE.Mesh(geometry, material);
 
-        this._scene.add(cube);
+        this._context.scene.add(cube);
     }
 
     async update(): Promise<void> {
-        const keys = this.keys;
-        const keyBindings = this._keyBindings;
-        if (keys.has(keyBindings.moveForward)) {
-            this._camera.position.add(new THREE.Vector3(0, 0, -1));
-        }
-        if (keys.has(keyBindings.moveLeft)) {
-            this._camera.position.add(new THREE.Vector3(-1, 0, 0));
-        }
-        if (keys.has(keyBindings.moveBack)) {
-            this._camera.position.add(new THREE.Vector3(0, 0, 1));
-        }
-        if (keys.has(keyBindings.moveRight)) {
-            this._camera.position.add(new THREE.Vector3(1, 0, 0));
-        }
-        if (keys.has(keyBindings.moveUp)) {
-            this._camera.position.add(new THREE.Vector3(0, 1, 0));
-        }
-        if (keys.has(keyBindings.moveDown)) {
-            this._camera.position.add(new THREE.Vector3(0, -1, 0));
+        const { mouseX, mouseY } = this;
+        this.mouseX = 0.0;
+        this.mouseY = 0.0;
+
+        const inputContext = getInputContext(this.keys, mouseX, mouseY);
+
+        slewModeUpdater(this._context, inputContext);
+
+        const debugMessages: string[] = [];
+        if (this._gameMode === 'slew') {
+            const { x, y, z, pitch, yaw } = this._context.slewModeEye;
+            debugMessages.push('Slew Mode');
+            debugMessages.push(`${x},${y},${z}`);
+            debugMessages.push(`pitch: ${pitch}`);
+            debugMessages.push(`yaw: ${yaw}`);
         }
 
-        if (this._gameMode === 'slew') {
-            this.gameModeDebug = 'Slew Mode';
-        }
+        this.debug = debugMessages.join('\n');
     }
 
     async draw(): Promise<void> {
-       this._renderer.render(this._scene, this._camera);
+        const { camera, renderer, scene } = this._context;
+        renderer.render(scene, camera);
     }
 }
 

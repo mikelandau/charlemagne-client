@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<title>My first three.js app</title>
-		<style>
-			body { margin: 0; }
-		</style>
-	</head>
-	<body>
-		<script src="bundle.js"></script>
-		<script>
-			// Our Javascript will go here.
-		</script>
-	</body>
+    <head>
+        <meta charset="utf-8">
+        <title>My first three.js app</title>
+        <style>
+            body { margin: 0; }
+            #info {
+                color: #fff;
+                top: 10px;
+                position: absolute;
+                text-align: center;
+                width: 100%;
+                display:block;
+                z-index: 100;
+            }
+    </style>
+    </head>
+    <body>
+        <div id="info">Description</div>
+        <script src="bundle.js" bind-debug="info"></script>
+    </body>
 </html>

@@ -6,6 +6,10 @@ import GameRunner from './types/game-runner';
 const game: Game = new Charlemagne();
 const runner: GameRunner = new CharlemagneRunner(game);
 
+const debugElementId = document.currentScript?.getAttribute('bind-debug');
+
+const debugElement = document.getElementById(debugElementId ?? '');
+
 document.body.appendChild(game.domElement);
 
 document.addEventListener('keydown', (e) => {
@@ -18,9 +22,25 @@ document.addEventListener('keyup', (e) => {
     game.keys.delete(key);
 });
 
+document.addEventListener('mousemove', (e) => {
+    const mouseX = e.movementX;
+    const mouseY = e.movementY;
+    game.mouseX += mouseX;
+    game.mouseY += mouseY;
+})
+
+game.domElement.addEventListener('click', (e) => {
+    e.preventDefault();
+    const canvas = e.target as HTMLCanvasElement;
+    canvas.requestPointerLock();
+})
+
 function animate() {
     requestAnimationFrame(animate);
     runner.runStep();
+    if (debugElement) {
+        debugElement.innerText = game.debug;
+    }
 }
 
 animate();
