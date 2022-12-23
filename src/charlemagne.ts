@@ -12,7 +12,8 @@ import getInputContext from './input/get-input-context';
 import slewModeUpdater from './updaters/slew-mode-updater';
 import Eye from './types/eye';
 import MeshResource from './types/mesh-resource';
-import MeshBatch from './mesh-batch';
+import MeshBatch from './types/mesh-batch';
+import createMeshBatch from './mesh-batch/create-mesh-batch';
 
 class Charlemagne implements Game {
     public domElement: HTMLCanvasElement;
@@ -26,7 +27,7 @@ class Charlemagne implements Game {
     
     private _context: GameContext;
 
-    private _meshBatch: MeshBatch = new MeshBatch();
+    private _meshBatch: MeshBatch;
 
     private _gameMode: GameMode = 'slew';
 
@@ -59,6 +60,8 @@ class Charlemagne implements Game {
             pitch: 0,
             yaw: 0
         };
+
+        this._meshBatch = createMeshBatch();
 
         this._context = {
             boxes,
