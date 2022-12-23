@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+
 import Game from './types/game';
 import KeyBindings from './types/key-bindings';
 import GameMode from './types/game-mode';
@@ -7,6 +11,8 @@ import GameContext from './types/game-context';
 import getInputContext from './input/get-input-context';
 import slewModeUpdater from './updaters/slew-mode-updater';
 import Eye from './types/eye';
+import MeshResource from './types/mesh-resource';
+import MeshBatch from './mesh-batch';
 
 class Charlemagne implements Game {
     public domElement: HTMLCanvasElement;
@@ -20,14 +26,21 @@ class Charlemagne implements Game {
     
     private _context: GameContext;
 
+    private _meshBatch: MeshBatch = new MeshBatch();
+
     private _gameMode: GameMode = 'slew';
+
+    private _ambientLight?: THREE.AmbientLight;
+    private _pointLight?: THREE.PointLight;
 
     constructor() {
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+        scene.background = new THREE.Color(0x888888);
         
         const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);        
 
         const boxes = [{
             x: 0,
@@ -69,12 +82,17 @@ class Charlemagne implements Game {
             this._context.scene.add(mesh);
         });
 
-        const geometry = new THREE.BoxGeometry(1,1,1);
-        const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        const loader = new FBXLoader();
+        const obj = await loader.loadAsync('fbx/xbot.fbx');
         
-        const cube = new THREE.Mesh(geometry, material);
+        this._context.scene.add(obj);
 
-        this._context.scene.add(cube);
+        this._ambientLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+        this._context.scene.add( this._ambientLight );
+
+        this._pointLight = new THREE.PointLight( 0xff0000, 1, 300 );
+        this._pointLight.position.set( 100, 50, 100 );
+        this._context.scene.add( this._pointLight );
     }
 
     async update(): Promise<void> {
@@ -90,9 +108,11 @@ class Charlemagne implements Game {
         if (this._gameMode === 'slew') {
             const { x, y, z, pitch, yaw } = this._context.slewModeEye;
             debugMessages.push('Slew Mode');
+            debugMessages.push('Move with W/A/S/D/Space/Control');
             debugMessages.push(`${x},${y},${z}`);
             debugMessages.push(`pitch: ${pitch}`);
             debugMessages.push(`yaw: ${yaw}`);
+            debugMessages.push([...this.keys].map(x => x === ' ' ? 'SPACE' : x).join(','));
         }
 
         this.debug = debugMessages.join('\n');

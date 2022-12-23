@@ -14,11 +14,19 @@ document.body.appendChild(game.domElement);
 
 document.addEventListener('keydown', (e) => {
     const key = e.key;
-    game.keys.add(key);
+    if (key.length === 1) {
+        // HACK: find a better way of doing this
+        game.keys.add(key.toLowerCase())
+    } else {
+        game.keys.add(key);
+    }
 });
 
 document.addEventListener('keyup', (e) => {
     const key = e.key;
+    if (key.length === 1) {
+        game.keys.delete(key.toLowerCase());
+    }
     game.keys.delete(key);
 });
 

@@ -4,6 +4,8 @@ import rotateCamera from '../camera/rotate-camera';
 import GameContext from '../types/game-context';
 import InputContext from '../types/input-context';
 
+const MOVESPEED = 1;
+
 const SENSITIVITY = 0.1;
 
 const HALF_PI = Math.PI / 2;
@@ -15,22 +17,22 @@ const slewModeUpdater = (gameContext: GameContext, inputContext: InputContext): 
     const movementVector = new Vector3();
 
     if (inputContext.moveUp) {
-        movementVector.y += SENSITIVITY;
+        movementVector.y += MOVESPEED;
     }
     if (inputContext.moveDown) {
-        movementVector.y -= SENSITIVITY;
+        movementVector.y -= MOVESPEED;
     }
     if (inputContext.moveLeft) {
-        movementVector.x -= SENSITIVITY;
+        movementVector.x -= MOVESPEED;
     }
     if (inputContext.moveRight) {
-        movementVector.x += SENSITIVITY;
+        movementVector.x += MOVESPEED;
     }
     if (inputContext.moveForward) {
-        movementVector.z -= SENSITIVITY;
+        movementVector.z -= MOVESPEED;
     }
     if (inputContext.moveBack) {
-        movementVector.z += SENSITIVITY;
+        movementVector.z += MOVESPEED;
     }
 
     movementVector.applyEuler(new Euler(slewModeEye.pitch, slewModeEye.yaw, 0, "YXZ"));
