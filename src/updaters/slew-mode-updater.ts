@@ -1,6 +1,4 @@
 import { Euler, Vector3 } from 'three';
-import moveCamera from '../camera/move-camera';
-import rotateCamera from '../camera/rotate-camera';
 import GameContext from '../types/game-context';
 import InputContext from '../types/input-context';
 
